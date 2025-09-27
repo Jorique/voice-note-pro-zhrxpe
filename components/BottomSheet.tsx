@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -16,6 +17,7 @@ interface SimpleBottomSheetProps {
   children?: React.ReactNode;
   isVisible?: boolean;
   onClose?: () => void;
+  fullScreen?: boolean; // New prop to enable full screen mode
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -24,28 +26,31 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SNAP_POINTS = {
   HALF: SCREEN_HEIGHT * 0.5,
   FULL: SCREEN_HEIGHT * 0.8,
+  FULL_SCREEN: SCREEN_HEIGHT * 0.95, // Almost full screen, leaving small gap for status bar
   CLOSED: SCREEN_HEIGHT,
 };
 
 const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
   children,
   isVisible = false,
-  onClose
+  onClose,
+  fullScreen = false
 }) => {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const gestureTranslateY = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const [currentSnapPoint, setCurrentSnapPoint] = useState(SNAP_POINTS.HALF);
+  const [currentSnapPoint, setCurrentSnapPoint] = useState(fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.HALF);
   const lastGestureY = useRef(0);
   const startPositionY = useRef(0);
 
   useEffect(() => {
     if (isVisible) {
-      setCurrentSnapPoint(SNAP_POINTS.HALF);
+      const initialSnapPoint = fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.HALF;
+      setCurrentSnapPoint(initialSnapPoint);
       gestureTranslateY.setValue(0);
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: SCREEN_HEIGHT - SNAP_POINTS.HALF,
+          toValue: SCREEN_HEIGHT - initialSnapPoint,
           duration: 300,
           useNativeDriver: true,
         }),
@@ -71,7 +76,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
         }),
       ]).start();
     }
-  }, [isVisible, translateY, backdropOpacity]);
+  }, [isVisible, translateY, backdropOpacity, fullScreen]);
 
   const handleBackdropPress = () => {
     onClose?.();
@@ -92,12 +97,16 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
     const currentPosition = SCREEN_HEIGHT - currentY;
 
     if (velocityY > 1000) return SNAP_POINTS.CLOSED;
-    if (velocityY < -1000) return SNAP_POINTS.FULL;
+    if (velocityY < -1000) return fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.FULL;
 
-    const distances = [
-      { point: SNAP_POINTS.HALF, distance: Math.abs(currentPosition - SNAP_POINTS.HALF) },
-      { point: SNAP_POINTS.FULL, distance: Math.abs(currentPosition - SNAP_POINTS.FULL) },
-    ];
+    const availableSnapPoints = fullScreen 
+      ? [SNAP_POINTS.HALF, SNAP_POINTS.FULL, SNAP_POINTS.FULL_SCREEN]
+      : [SNAP_POINTS.HALF, SNAP_POINTS.FULL];
+
+    const distances = availableSnapPoints.map(point => ({
+      point,
+      distance: Math.abs(currentPosition - point)
+    }));
 
     if (currentPosition < SNAP_POINTS.HALF * 0.5) {
       return SNAP_POINTS.CLOSED;
@@ -115,7 +124,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
     const currentBasePosition = SCREEN_HEIGHT - currentSnapPoint;
     const intendedPosition = currentBasePosition + translationY;
 
-    const minPosition = SCREEN_HEIGHT - SNAP_POINTS.FULL;
+    const minPosition = SCREEN_HEIGHT - (fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.FULL);
     const maxPosition = SCREEN_HEIGHT;
 
     const clampedPosition = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
@@ -134,7 +143,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
       const currentBasePosition = SCREEN_HEIGHT - currentSnapPoint;
       const intendedPosition = currentBasePosition + translationY;
 
-      const minPosition = SCREEN_HEIGHT - SNAP_POINTS.FULL;
+      const minPosition = SCREEN_HEIGHT - (fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.FULL);
       const maxPosition = SCREEN_HEIGHT;
 
       const finalY = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
@@ -149,6 +158,8 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
       }
     }
   };
+
+  const maxHeight = fullScreen ? SNAP_POINTS.FULL_SCREEN : SNAP_POINTS.FULL;
 
   return (
     <Modal
@@ -175,6 +186,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
             style={[
               styles.bottomSheet,
               {
+                height: maxHeight,
                 transform: [
                   { translateY: Animated.add(translateY, gestureTranslateY) }
                 ],
@@ -217,7 +229,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   bottomSheet: {
-    height: SNAP_POINTS.FULL,
     backgroundColor: colors.background || '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

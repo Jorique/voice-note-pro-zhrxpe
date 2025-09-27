@@ -38,8 +38,8 @@ export default function SettingsBottomSheet({
   const maskedApiKey = apiKey ? `sk-...${apiKey.slice(-4)}` : '';
 
   return (
-    <SimpleBottomSheet isVisible={isVisible} onClose={onClose}>
-      <ScrollView style={{ flex: 1 }}>
+    <SimpleBottomSheet isVisible={isVisible} onClose={onClose} fullScreen={true}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={{ padding: 20 }}>
           <View style={[commonStyles.row, { marginBottom: 24 }]}>
             <Text style={commonStyles.title}>Settings</Text>
@@ -103,6 +103,15 @@ export default function SettingsBottomSheet({
               3. Navigate to API Keys section{'\n'}
               4. Create a new secret key{'\n'}
               5. Copy and paste it here
+            </Text>
+          </View>
+
+          <View style={{ marginBottom: 24 }}>
+            <Text style={[commonStyles.subtitle, { marginBottom: 8 }]}>
+              About this App
+            </Text>
+            <Text style={[commonStyles.textSecondary, { lineHeight: 20 }]}>
+              This voice transcription app uses OpenAI&apos;s Whisper API to convert your voice recordings into text. All recordings and transcriptions are stored locally on your device for privacy.
             </Text>
           </View>
 
