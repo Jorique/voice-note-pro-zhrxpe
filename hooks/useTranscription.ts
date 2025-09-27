@@ -7,6 +7,8 @@ export const useTranscription = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   const transcribeAudio = async (audioUri: string, apiKey: string): Promise<string | null> => {
+    console.log('transcribeAudio called with:', { audioUri, hasApiKey: !!apiKey });
+    
     if (!apiKey.trim()) {
       Alert.alert('API Key Required', 'Please set your OpenAI API key in settings.');
       return null;
@@ -19,6 +21,8 @@ export const useTranscription = () => {
       
       // Read the audio file
       const audioInfo = await FileSystem.getInfoAsync(audioUri);
+      console.log('Audio file info:', audioInfo);
+      
       if (!audioInfo.exists) {
         throw new Error('Audio file not found');
       }
@@ -41,6 +45,8 @@ export const useTranscription = () => {
         },
         body: formData,
       });
+
+      console.log('OpenAI response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.text();

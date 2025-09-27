@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { Alert } from 'react-native';
@@ -10,21 +10,42 @@ export const useAudioRecording = () => {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startRecording = async (): Promise<string | null> => {
+  useEffect(() => {
+    // Set up audio mode when component mounts
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+        console.log('Audio mode set up successfully');
+      } catch (error) {
+        console.error('Failed to set up audio mode:', error);
+      }
+    };
+
+    setupAudio();
+
+    // Cleanup on unmount
+    return () => {
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+      }
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(console.error);
+      }
+    };
+  }, []);
+
+  const startRecording = async (): Promise<void> => {
     try {
       console.log('Requesting permissions...');
       const { status } = await Audio.requestPermissionsAsync();
       
       if (status !== 'granted') {
         Alert.alert('Permission Required', 'Please grant microphone permission to record audio.');
-        return null;
+        return;
       }
-
-      console.log('Setting audio mode...');
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
 
       console.log('Starting recording...');
       const { recording } = await Audio.Recording.createAsync(
@@ -40,11 +61,11 @@ export const useAudioRecording = () => {
         setRecordingDuration(prev => prev + 1);
       }, 1000);
 
-      return recording.getURI();
+      console.log('Recording started successfully');
     } catch (error) {
       console.error('Failed to start recording:', error);
       Alert.alert('Error', 'Failed to start recording. Please try again.');
-      return null;
+      setIsRecording(false);
     }
   };
 
@@ -73,6 +94,7 @@ export const useAudioRecording = () => {
     } catch (error) {
       console.error('Failed to stop recording:', error);
       Alert.alert('Error', 'Failed to stop recording.');
+      setIsRecording(false);
       return null;
     }
   };

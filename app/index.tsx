@@ -15,7 +15,6 @@ import { router } from 'expo-router';
 
 export default function MainScreen() {
   const [showSettings, setShowSettings] = useState(false);
-  const [currentRecordingUri, setCurrentRecordingUri] = useState<string | null>(null);
   
   const { 
     isRecording, 
@@ -37,15 +36,22 @@ export default function MainScreen() {
   } = useStorage();
 
   const handleRecordPress = async () => {
+    console.log('Record button pressed, isRecording:', isRecording);
+    
     if (isRecording) {
       // Stop recording
+      console.log('Stopping recording...');
       const uri = await stopRecording();
       if (uri) {
-        setCurrentRecordingUri(uri);
+        console.log('Recording stopped with URI:', uri);
         await handleTranscribe(uri);
+      } else {
+        console.log('No URI returned from stopRecording');
       }
     } else {
       // Start recording
+      console.log('Starting recording...');
+      
       if (!settings.apiKey.trim()) {
         Alert.alert(
           'API Key Required',
@@ -58,14 +64,14 @@ export default function MainScreen() {
         return;
       }
       
-      const uri = await startRecording();
-      if (uri) {
-        setCurrentRecordingUri(uri);
-      }
+      await startRecording();
+      console.log('Start recording function completed');
     }
   };
 
   const handleTranscribe = async (audioUri: string) => {
+    console.log('Starting transcription for URI:', audioUri);
+    
     // Create a pending transcription record
     const transcriptionRecord: TranscriptionRecord = {
       id: Date.now().toString(),

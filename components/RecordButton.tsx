@@ -34,6 +34,11 @@ export default function RecordButton({ isRecording, onPress, duration }: RecordB
     }
   }, [isRecording]);
 
+  const handlePress = () => {
+    console.log('RecordButton pressed, isRecording:', isRecording);
+    onPress();
+  };
+
   return (
     <View style={{ alignItems: 'center' }}>
       <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
@@ -42,7 +47,7 @@ export default function RecordButton({ isRecording, onPress, duration }: RecordB
             buttonStyles.record,
             isRecording && buttonStyles.recordActive,
           ]}
-          onPress={onPress}
+          onPress={handlePress}
           activeOpacity={0.8}
         >
           <Ionicons

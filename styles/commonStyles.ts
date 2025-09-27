@@ -42,6 +42,10 @@ export const buttonStyles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0px 4px 12px rgba(255, 59, 48, 0.3)',
     elevation: 8,
+    shadowColor: colors.error,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   recordActive: {
     backgroundColor: colors.warning,
