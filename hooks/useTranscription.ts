@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export const useTranscription = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -19,7 +19,7 @@ export const useTranscription = () => {
     try {
       console.log('Starting transcription for:', audioUri);
       
-      // Read the audio file
+      // Read the audio file using legacy API
       const audioInfo = await FileSystem.getInfoAsync(audioUri);
       console.log('Audio file info:', audioInfo);
       
