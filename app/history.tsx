@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,9 +11,11 @@ export default function HistoryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const { transcriptions, deleteTranscription, isLoading } = useStorage();
 
-  const filteredTranscriptions = transcriptions.filter(transcription =>
-    transcription.transcription.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTranscriptions = searchQuery.trim()
+    ? transcriptions.filter(transcription =>
+        transcription.transcription.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : transcriptions;
 
   if (isLoading) {
     return (
